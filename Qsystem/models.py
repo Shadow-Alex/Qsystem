@@ -7,10 +7,13 @@ from django.utils import timezone
 
 class Authority(models.Model):
     """身份->权限"""
+    admin = 'admin'
+    student = 'student'
+    teacher = 'teacher'
     identification = (
-        ('admin', '管理员'),
-        ('student', '学生'),  # 不可以出题
-        ('teacher', '老师'),
+        (admin, '管理员'),
+        (student, '学生'),  # 不可以出题
+        (teacher, '老师'),
     )
 
     auth = models.CharField(max_length=32, choices=identification, default='学生')
@@ -22,9 +25,11 @@ class Authority(models.Model):
 
 class User(models.Model):
     """用户"""
+    male = 'male'
+    female = 'female'
     gender = (
-        ('male', '男'),
-        ('female', '女'),
+        (male, '男'),
+        (female, '女'),
     )
 
     name = models.CharField(max_length=128, unique=True)
@@ -41,9 +46,21 @@ class User(models.Model):
 
 class Question(models.Model):
     """题目"""
+    options = (
+        ('A', "A"),
+        ('B', "B"),
+        ('C', 'C'),
+        ('D', 'D'),
+    )
+
     question_text = models.CharField(max_length=256)
     pub_date = models.DateTimeField('date published')
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)  # 人走了题目留下
+    correct_option = models.CharField(max_length=10, choices=options, default='A')
+    A_text = models.CharField(max_length=256, default="请输入选项")
+    B_text = models.CharField(max_length=256, default="请输入选项")
+    C_text = models.CharField(max_length=256, default="请输入选项")
+    D_text = models.CharField(max_length=256, default="请输入选项")
 
     def __str__(self):
         return self.question_text
@@ -51,23 +68,6 @@ class Question(models.Model):
     def was_published_recently(self):
         now = timezone.now()
         return now - datetime.timedelta(days=1) <= self.pub_date <= now
-
-
-class Area(models.Model):
-    """知识点"""
-    area_text = models.CharField(max_length=256)
-
-    def __str__(self):
-        return self.area_text
-
-
-class Option(models.Model):
-    """选项"""
-    option_text = models.CharField(max_length=256)
-    area = models.ForeignKey(Area, on_delete=models.SET_NULL, null=True)
-
-    def __str__(self):
-        return self.option_text
 
 
 class PaperHead(models.Model):
@@ -86,11 +86,12 @@ class PaperBody(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
 
     def __str__(self):
-        return str(self.question) + " in " + str(self.paper_head)
+        return str(self.paper_head) + "\tinclude\t" + str(self.question)
 
 
 class PaperComment(models.Model):
     """试卷评论"""
+    comment_topic = models.CharField(max_length=256, default="请输入标题")
     comment_text = models.CharField(max_length=256)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     likes = models.IntegerField(default=0)
@@ -102,8 +103,10 @@ class PaperComment(models.Model):
 
 class QuestionComment(models.Model):
     """题目评论"""
+    comment_topic = models.CharField(max_length=256, default="请输入标题")
     comment_text = models.CharField(max_length=256)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, default=0)
     likes = models.IntegerField(default=0)
 
     def __str__(self):
@@ -112,14 +115,23 @@ class QuestionComment(models.Model):
 
 class UserQuestionDetail(models.Model):
     """用户做题记录"""
+    options = (
+        ('A', "A"),
+        ('B', "B"),
+        ('C', 'C'),
+        ('D', 'D'),
+    )
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     date = models.DateField('date answered')
     inPaper = models.ForeignKey('UserPaperDetail', default=None, on_delete=models.CASCADE,
-                                null=True)  # 做题记录并不一定是做试卷时产生的,None代表不是
+                                null=True, blank=True, db_constraint=False)  # 做题记录并不一定是做试卷时产生的,None代表不是
+    option = models.CharField(max_length=32, choices=options, default='A')  # 单选题
+    is_correct = models.BooleanField(default=True)  # 是否是正确的，额外数据方便统计查找。
 
     def __str__(self):
-        if self.inPaper == -1:
+        if self.inPaper is None:
             return str(self.user) + " complete " + str(self.question) + " @ " + str(self.date) + " by accident."
         else:
             return str(self.user) + " complete " + str(self.question) + " @ " + str(self.date) + " in Paper No." + str(
@@ -134,3 +146,13 @@ class UserPaperDetail(models.Model):
 
     def __str__(self):
         return str(self.user) + " complete " + str(self.paper) + " @ " + str(self.date)
+
+
+class UpQuestionComment(models.Model):
+    """用户点赞记录"""
+    question_comment = models.ForeignKey(QuestionComment, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    date = models.DateField('date finished')
+
+    def __str__(self):
+        return str(self.user) + "up" + str(self.question_comment) + " @ " + str(self.date)

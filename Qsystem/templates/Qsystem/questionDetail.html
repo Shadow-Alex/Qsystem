@@ -1,0 +1,47 @@
+{% extends 'Qsystem/base.html' %}
+{% load static %}
+{% block title %}{{ question.question_text }}{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'Qsystem/CSS/login.css' %}">
+{% endblock %}
+{% block question_display %}
+    <li class="active"><a href="{% url 'Qsystem:questionList' %}">刷题</a></li>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="col-md-4 col-md-offset-4">
+            <form class='form-questionDetail' action="{% url 'Qsystem:questionDetail' question.id %}" method="post">
+                {% if message %}
+                    <div class="alert alert-warning">{{ message }}</div>
+                {% endif %}
+
+                {% csrf_token %}
+                <h2 class="text-center">{{ question.question_text }}</h2>
+
+                <div>
+                    <input type="radio" name="option" id="A" value="A">
+                    <label for="A">A. {{ question.A_text }}</label>
+                </div>
+
+                <div>
+                    <input type="radio" name="option" id="B" value="B">
+                    <label for="B">B. {{ question.B_text }}</label>
+                </div>
+
+                <div>
+                    <input type="radio" name="option" id="C" value="C">
+                    <label for="C">C. {{ question.C_text }}</label>
+                </div>
+
+                <div>
+                    <input type="radio" name="option" id="D" value="D">
+                    <label for="D">D. {{ question.D_text }}</label>
+                </div>
+
+                <button type="reset" class="btn btn-default pull-left">重置</button>
+                <button type="submit" class="btn btn-primary pull-right">提交</button>
+            </form>
+        </div>
+    </div> <!-- /container -->
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'Qsystem/base.html' %}
+{% load static %}
+{% block title %}{{ question.question_text }}{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'Qsystem/CSS/login.css' %}">
+{% endblock %}
+{% block question_display %}
+    <li class="active"><a href="{% url 'Qsystem:questionList' %}">刷题</a></li>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="col-md-4 col-md-offset-4">
+            <h2 class="text-center">{{ question.question_text }}</h2>
+            <div class="text-center">
+                正确率：{{ correct_attempt }}/{{ total_attempt }}
+            </div> <!-- /所有人题目情况 -->
+            <div class="text-left">
+                <div>
+                    我的做题记录:
+                </div>
+                {% for attempt in user_attempt %}
+                    <div>
+                        {{ attempt }}
+                    </div>
+                {% endfor %}
+                <div>
+                题解：
+                {% for comment in comments %}
+                        <br>
+                        {{ comment.comment_topic }}
+                        <br>
+                        {{ comment.author }}
+                        <br>
+                        {{ comment.comment_text }}
+                        <br>
+                        {{ comment.likes }}
+                        </div>
+                    {% endfor %}
+                <div>
+                    <a href="{% url 'Qsystem:questionDetail' question_id%}">
+                    去做题
+                </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <!-- /container -->
+{% endblock %}
+

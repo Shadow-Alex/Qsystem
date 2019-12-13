@@ -1,0 +1,50 @@
+{% extends 'Qsystem/base.html' %}
+
+{% block title %}出题{% endblock %}
+{% block assignQuestion_display %}
+    <li class="active"><a href="{% url 'Qsystem:assignQuestion' %}">出题</a></li>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="col-md-4 col-md-offset-4">
+            <form class='form-register' action="{% url 'Qsystem:assignQuestion' %}" method="post">
+
+                {% if message %}
+                    <div class="alert alert-warning">{{ message }}</div>
+                {% endif %}
+
+                {% csrf_token %}
+
+                <h2 class="text-center">欢迎出题</h2>
+                <div class="form-group">
+                    {{ Question_form.question_text.label_tag }}
+                    {{ Question_form.question_text }}
+                </div>
+                <div class="form-group">
+                    {{ Question_form.correctOption.label_tag }}
+                    {{ Question_form.correctOption }}
+                </div>
+                <div class="form-group">
+                    {{ Question_form.A_text.label_tag }}
+                    {{ Question_form.A_text }}
+                </div>
+                <div class="form-group">
+                    {{ Question_form.B_text.label_tag }}
+                    {{ Question_form.B_text }}
+                </div>
+                <div class="form-group">
+                    {{ Question_form.C_text.label_tag }}
+                    {{ Question_form.C_text }}
+                </div>
+                <div class="form-group">
+                    {{ Question_form.D_text.label_tag }}
+                    {{ Question_form.D_text }}
+                </div>
+
+                <button type="reset" class="btn btn-default pull-left">重置</button>
+                <button type="submit" class="btn btn-primary pull-right">提交</button>
+
+            </form>
+        </div>
+    </div> <!-- /container -->
+{% endblock %}
