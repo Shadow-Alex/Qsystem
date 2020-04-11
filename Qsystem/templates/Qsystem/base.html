@@ -10,7 +10,7 @@
     <title>{% block title %}base{% endblock %}</title>
 
     <!-- Bootstrap -->
-    <link href="{% static 'login/bootstrap-3.3.7-dist/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'Qsystem/bootstrap-3.3.7-dist/css/bootstrap.css' %}" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -41,17 +41,14 @@
                 {% block index_display %}
                     <li><a href="{% url 'Qsystem:index' %}">主页</a></li>
                 {% endblock %}
-                {% block assignQuestion_display %}
-                    <li><a href="{% url 'Qsystem:assignQuestion' %}">出题</a></li>
+                {% block info_display %}
+                    <li><a href="{% url 'Qsystem:info' %}">账户信息</a></li>
                 {% endblock %}
-                {% block assignPaperHead_display %}
-                    <li><a href="{% url 'Qsystem:assignPaperHead' %}">出卷</a></li>
+                {% block deposit_display %}
+                    <li><a href="{% url 'Qsystem:deposit' %}">存款</a></li>
                 {% endblock %}
                 {% block question_display %}
-                    <li><a href="{% url 'Qsystem:questionList' %}">刷题</a></li>
-                {% endblock %}
-                {% block paperHead_display %}
-                    <li><a href="{% url 'Qsystem:index' %}">刷卷</a></li>
+                    <li><a href="{% url 'Qsystem:withdraw' %}">取款</a></li>
                 {% endblock %}
             </ul>
             <ul class="nav navbar-nav navbar-right">
@@ -75,12 +72,32 @@
     </div><!-- /.container-fluid -->
 </nav>
 
+{% if error_message %}
+    <div class="alert alert-danger alert-dismissable">
+        <button type="button" class="close" data-dismiss="alert"
+                aria-hidden="true">
+            &times;
+        </button>
+        {{ error_message }}
+    </div>
+{% endif %}
+
+{% if success_message %}
+    <div class="alert alert-success alert-dismissable">
+        <button type="button" class="close" data-dismiss="alert"
+                aria-hidden="true">
+            &times;
+        </button>
+        {{ success_message }}
+    </div>
+{% endif %}
+
+
 {% block content %}
 {% endblock %}
 
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="{% static 'login/JS/jquery-3.2.1.js' %}"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="{% static 'login/bootstrap-3.3.7-dist/js/bootstrap.min.js' %}"></script>
 </body>

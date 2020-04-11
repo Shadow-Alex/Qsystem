@@ -1,35 +1,44 @@
-from django.shortcuts import render
-
-# Create your views here.
-# Qsystem/views.py
-
+import decimal
+import re
 from django.shortcuts import render, redirect
 
 from Qsystem.models import *
 from Qsystem.forms import *
 from django.utils import timezone
+from hashlib import sha256
+
+
+def get_annual_yeild():
+    return 0.01
 
 
 def index(request):
-    pass
+    if request.session.get('block_message', None):
+        # 显示报错信息并且之后不显示
+        block_message = request.session['block_message']
+        request.session['block_message'] = None
+        return render(request, 'Qsystem/index.html', {'block_message': block_message})
+
     return render(request, 'Qsystem/index.html')
 
 
 def login(request):
     if request.session.get('is_login', None):
+        if request.session.get("success_reg_message", None):
+            del request.session['success_reg_message']
         return redirect('Qsystem:index')
     if request.method == "POST":
         login_form = UserForm(request.POST)
         message = "请检查填写的内容！"
         if login_form.is_valid():
-            username = login_form.cleaned_data['username']
+            card_id = login_form.cleaned_data['card_id']
             password = login_form.cleaned_data['password']
             try:
-                user = User.objects.get(name=username)
-                if user.password == password:
+                user = User.objects.get(card_Id=card_id)  # 身份证号
+                if user.password == encoder(password, user.name):
                     request.session['is_login'] = True
-                    request.session['user_id'] = user.id
-                    request.session['user_name'] = user.name
+                    request.session['user_id'] = user.id  # 用户序号
+                    request.session['user_name'] = user.name  # 用户姓名
                     return redirect('Qsystem:index')
                 else:
                     message = "密码不正确！"
@@ -38,7 +47,15 @@ def login(request):
         return render(request, 'Qsystem/login.html', locals())
 
     login_form = UserForm()
+    if request.session.get('success_reg_message', None):
+        success_reg_message = request.session['success_reg_message']
+        del request.session['success_reg_message']
+
     return render(request, 'Qsystem/login.html', locals())
+
+
+def encoder(string1, string2):
+    return sha256((str(sha256(string1.encode("utf-8")).hexdigest()) + string2).encode("utf-8")).hexdigest()
 
 
 def register(request):
@@ -50,31 +67,49 @@ def register(request):
         message = "请检查填写的内容！"
         if register_form.is_valid():  # 获取数据
             username = register_form.cleaned_data['username']
+            card_id = register_form.cleaned_data['card_id']
             password1 = register_form.cleaned_data['password1']
             password2 = register_form.cleaned_data['password2']
-            email = register_form.cleaned_data['email']
-            sex = register_form.cleaned_data['sex']
+            phone = register_form.cleaned_data['phone']
+
+            phone_reg = re.compile(r'1[345678]\d{9}')
+            card_id_reg = re.compile(r'([A-Za-z](\d{6})\(\d\))|(\d{6})(\d{4})(\d{2})(\d{2})(\d{3})([0-9]|X|x)$')
             if password1 != password2:  # 判断两次密码是否相同
                 message = "两次输入的密码不同！"
                 return render(request, 'Qsystem/register.html', locals())
+            elif  len(password1) < 6:
+                message = "密码长度不小于6位！"
+                return render(request, 'Qsystem/register.html', locals())
+            elif not phone_reg.match(phone):
+                message = "请输入正确的手机号码！"
+                return render(request, 'Qsystem/register.html', locals())
+            elif not card_id_reg.match(card_id):
+                message = "请输入正确的身份证号！"
+                return render(request, 'Qsystem/register.html', locals())
             else:
-                same_name_user = User.objects.filter(name=username)
-                if same_name_user:  # 用户名唯一
-                    message = '用户已经存在，请重新选择用户名！'
-                    return render(request, 'Qsystem/register.html', locals())
-                same_email_user = User.objects.filter(email=email)
-                if same_email_user:  # 邮箱地址唯一
-                    message = '该邮箱地址已被注册，请使用别的邮箱！'
+                # 身份证末尾校验：
+                check_code = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'][sum(
+                    [int(card_id[i]) * [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2][i] for i in
+                     range(17)]) % 11]
+                if not check_code == card_id[-1]:
+                    message = "身份证校验和有误，请输入正确的身份证号！"
                     return render(request, 'Qsystem/register.html', locals())
 
-                # 当一切都OK的情况下，创建新用户
+                same_card_id_user = User.objects.filter(card_Id=card_id)
+                if same_card_id_user:  # 身份号只能开一个账户！
+                    message = '该身份证已经注册，请直接登陆！'
+                    return render(request, 'Qsystem/register.html', locals())
 
-                new_user = User.objects.create()
-                new_user.name = username
-                new_user.password = password1
-                new_user.email = email
-                new_user.sex = sex
-                new_user.save()
+                new_user = User.objects.create(
+                    name=username,
+                    password=encoder(password1, username),
+                    card_Id=card_id,
+                    phone=phone,
+                    money=0,
+                )
+
+                # success
+                request.session['success_reg_message'] = "注册成功,请直接登陆！"
                 return redirect('Qsystem:login')  # 自动跳转到登录页面
     register_form = RegisterForm()
     return render(request, 'Qsystem/register.html', locals())
@@ -87,115 +122,127 @@ def logout(request):
     return redirect('Qsystem:index')
 
 
-def base(request):
-    return render(request, 'Qsystem/base.html')
-
-
-def assignQuestion(request):
+def info(request):
+    """账户信息"""
     if not request.session.get('is_login', None):
         return redirect('Qsystem:index')
-    if request.method == 'POST':
-        question_form = QuestionForm(request.POST)
-        message = "请检查填写的内容！"
-        if question_form.is_valid():  # 获取数据
-            pass  # 判断出题合理性，暂时想不到什么要求。
 
-            # 创建新问题
-            new_question = Question.objects.create(
-                pub_date=timezone.now(),
-                question_text=question_form.cleaned_data['question_text'],
-                A_text=question_form.cleaned_data['A_text'],
-                B_text=question_form.cleaned_data['B_text'],
-                C_text=question_form.cleaned_data['C_text'],
-                D_text=question_form.cleaned_data['D_text'],
-                correct_option=question_form.cleaned_data['correctOption'],
-            )
-            # 增加对象关联 : Question n <--author--> 1 User
-            user_id = request.session['user_id']
-            user = User.objects.get(id=user_id)
-            user.question_set.add(new_question)
-
-            return redirect('Qsystem:index')  # 后续可以加入继续出题或者成功提示！
-    question_form = QuestionForm()
-    return render(request, 'Qsystem/assignQuestion.html', {"Question_form": question_form})
-
-
-def assignPaperHead(request):
-    if not request.session.get('is_login', None):
-        return redirect('Qsystem:index')
-    if request.method == 'POST':
-        paper_form = PaperHeadForm(request.POST)
-        message = "请检查填写的内容！"
-        if paper_form.is_valid():
-            pass
-            # 创建 PaperHead
-            new_paperHead = PaperHead.objects.create(
-                paper_title=paper_form.cleaned_data['paperTitle'],
-            )
-            # 增加对象联系 : paperHead n <--author--> 1 User
-            user_id = request.session['user_id']
-            user = User.objects.get(id=user_id)
-            user.paperhead_set.add(new_paperHead)
-
-            return redirect('Qsystem:index')
-
-    paper_form = PaperHeadForm()
-    return render(request, 'Qsystem/assignPaperHead.html', {'PaperHead_form': paper_form})
-
-
-def test(request):
-    return render(request, 'Qsystem/test.html')
-
-
-def questionDetail(request, question_id):  # 做题页面
-    if not request.session.get('is_login', None):
-        return redirect('Qsystem:index')
-    if request.method == 'POST':
-        option = request.POST.get('option', None)
-        message = "请检查填写内容！"
-        if option is not None:
-            # userQuestionDetail n <--产生--> 1 User.
-            user_id = request.session['user_id']
-            user = User.objects.get(id=user_id)
-            # userQuestionDetail n <--属于--> 1 Question.
-            question = Question.objects.get(id=question_id)
-            # 创建做题记录
-            new_userQuestionDetail = UserQuestionDetail.objects.create(
-                date=timezone.now(),
-                option=option,
-                user=user,
-                question=question,
-                inPaper=None,  # 顺序做题遇到的
-                is_correct=(option == question.correct_option),
-            )
-            # TODO 返回结果页
-            pass
-            return redirect('Qsystem:index')
-    question = Question.objects.get(id=question_id)
-    return render(request, 'Qsystem/questionDetail.html', locals())
-
-
-def questionList(request):
-    question_list = Question.objects.order_by('-pub_date')
-    return render(request, 'Qsystem/questionList.html', locals())
-
-
-def questionOverview(request, question_id):
-    if not request.session.get('is_login', None):
-        return redirect('Qsystem:index')
-    # 查找所有人做题记录
-    question = Question.objects.get(id=question_id)
-    total_attempt = question.userquestiondetail_set.count()
-    correct_attempt = question.userquestiondetail_set.filter(is_correct=True).count()
-    # 查找用户做题记录
     user_id = request.session['user_id']
     user = User.objects.get(id=user_id)
-    user_attempt = user.userquestiondetail_set.filter(question_id=question_id).order_by('-date')
-    # 查找所有题解，按照likes排序。
-    comments = question.questioncomment_set.order_by('-likes')
-    return render(request, 'Qsystem/questionOverview.html', locals())
+    money = user.money  # 当前余额
+    logs = Log.objects.filter(customer=user).order_by("-time")
+
+    if request.session.get('success_message', None):
+        success_message = request.session['success_message']
+        del request.session['success_message']
+
+    return render(request, 'Qsystem/info.html', locals())
 
 
-def questionComment(request, questionComment_id):
-    Comment = QuestionComment.objects.get(id=questionComment_id)
-    return render(request, 'Qsystem/questionComment.html', locals())
+def deposit(request):
+    """存款界面"""
+    if not request.session.get('is_login', None):
+        return redirect('Qsystem:index')
+
+    if request.method == 'POST':
+        deposit_form = DepositForm(request.POST)
+        message = "无效金额！"
+        if deposit_form.is_valid():
+            # 结算利息、存入金额、生成Logs
+            # 寻找上次利息结算时间
+            user_id = request.session['user_id']
+            user = User.objects.get(id=user_id)
+            logs = Log.objects.filter(customer_id=user_id).order_by('-time')
+            now = timezone.now()
+            money = user.money
+            deposit_amount = deposit_form.cleaned_data['amount'] * 100
+
+            if deposit_amount <= 0:
+                message = "请输入合法的金额！"
+                return render(request, 'Qsystem/deposit.html', locals())
+            if deposit_amount >= 100000000000000:
+                message = "输入金额过大，请输入正确的金额！"
+                return render(request, 'Qsystem/deposit.html', locals())
+
+            if logs:
+                lastlog = logs[0]
+                lasttime = lastlog.time
+                period = (now - lasttime).seconds
+                current_yeild = get_annual_yeild() * (period) / (365 * 86400)
+                balance_amount = round(decimal.Decimal(current_yeild) * money, 4)
+
+                user.money += balance_amount
+                user.save()
+                new_log = Log.objects.create(
+                    amount=balance_amount,
+                    action=Log.balance,
+                    customer=user,
+                    left=user.money)
+
+            user.money += deposit_amount
+            user.save()
+            new_log = Log.objects.create(
+                amount=deposit_amount,
+                action=Log.deposit,
+                customer=user,
+                left=user.money)
+
+            # success!
+            request.session['success_message'] = "存款成功！"
+            return redirect('Qsystem:info')
+    deposit_form = DepositForm()
+    return render(request, 'Qsystem/deposit.html', locals())
+
+
+def withdraw(request):
+    """取款界面"""
+    if not request.session.get('is_login', None):
+        return redirect('Qsystem:index')
+
+    if request.method == 'POST':
+        withdraw_form = WithdrawForm(request.POST)
+        message = "无效金额！"
+        if withdraw_form.is_valid():
+            # 结算利息、存入金额、生成Logs
+            # 寻找上次利息结算时间
+            user_id = request.session['user_id']
+            user = User.objects.get(id=user_id)
+            logs = Log.objects.filter(customer_id=user_id).order_by('-time')
+            now = timezone.now()
+            money = user.money
+            withdraw_amount = withdraw_form.cleaned_data['amount'] * 100
+
+            if withdraw_amount <= 0:
+                message = "请输入合法的金额！"
+                return render(request, 'Qsystem/withdraw.html', locals())
+            if money < withdraw_amount:
+                message = "账户余额不足，您账户余额为" + str(money) + "元！"
+                return render(request, 'Qsystem/withdraw.html', locals())
+            if logs:
+                lastlog = logs[0]
+                lasttime = lastlog.time
+                period = (now - lasttime).seconds
+                current_yeild = get_annual_yeild() * (period) / (365 * 86400)
+                balance_amount = round(decimal.Decimal(current_yeild) * money, 4)
+
+                user.money += balance_amount
+                user.save()
+                new_log = Log.objects.create(
+                    amount=balance_amount,
+                    action=Log.balance,
+                    customer=user,
+                    left=user.money)
+
+            user.money -= withdraw_amount
+            user.save()
+            new_log = Log.objects.create(
+                amount=withdraw_amount,
+                action=Log.withdraw,
+                customer=user,
+                left=user.money)
+
+            # success!
+            request.session['success_message'] = "取款成功！"
+            return redirect('Qsystem:info')
+    withdraw_form = WithdrawForm()
+    return render(request, 'Qsystem/withdraw.html', locals())
