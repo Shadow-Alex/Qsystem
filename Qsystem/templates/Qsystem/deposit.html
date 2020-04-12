@@ -1,0 +1,86 @@
+{% extends 'Qsystem/base.html' %}
+{% load static %}
+{% block css %}
+
+    <link href="{% static 'img/favicon.png' %}" rel="shortcut icon">
+    <link href="{% static 'img/apple-touch-icon.png' %}" rel="apple-touch-icon">
+    <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500" rel="stylesheet" type="text/css">
+    <link href="{% static 'bower_components/select2/dist/css/select2.min.css' %}" rel="stylesheet">
+    <link href="{% static 'bower_components/bootstrap-daterangepicker/daterangepicker.css' %}" rel="stylesheet">
+    <link href="{% static 'bower_components/dropzone/dist/dropzone.css' %}" rel="stylesheet">
+    <link href="{% static 'bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'bower_components/fullcalendar/dist/fullcalendar.min.css' %}" rel="stylesheet">
+{#    <link href="{% static 'bower_components/perfect-scrollbar/css/perfect-scrollbar.min.css' %}" rel="stylesheet">#}
+    <link href="{% static 'bower_components/slick-carousel/slick/slick.css' %}" rel="stylesheet">
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+
+    <script src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>
+    <script src="{% static 'bower_components/popper.js/dist/umd/popper.min.js' %}"></script>
+    <script src="{% static 'bower_components/moment/moment.js' %}"></script>
+    <script src="{% static 'bower_components/chart.js/dist/Chart.min.js' %}"></script>
+    <script src="{% static 'bower_components/select2/dist/js/select2.full.min.js' %}"></script>
+    <script src="{% static 'bower_components/jquery-bar-rating/dist/jquery.barrating.min.js' %}"></script>
+    <script src="{% static 'bower_components/ckeditor/ckeditor.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap-validator/dist/validator.min.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
+    <script src="{% static 'bower_components/ion.rangeSlider/js/ion.rangeSlider.min.js' %}"></script>
+    <script src="{% static 'bower_components/dropzone/dist/dropzone.js' %}"></script>
+    <script src="{% static 'bower_components/editable-table/mindmup-editabletable.js' %}"></script>
+    <script src="{% static 'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'bower_components/fullcalendar/dist/fullcalendar.min.js' %}"></script>
+{#    <script src="{% static 'bower_components/perfect-scrollbar/js/perfect-scrollbar.jquery.min.js' %}"></script>#}
+    <script src="{% static 'bower_components/tether/dist/js/tether.min.js' %}"></script>
+    <script src="{% static 'bower_components/slick-carousel/slick/slick.min.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/util.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/alert.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/button.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/carousel.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/collapse.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/dropdown.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/modal.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/tab.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/tooltip.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/popover.js' %}"></script>
+    <script src="{% static 'js/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'js/demo_customizer.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+{% endblock %}
+{% block title %}存款{% endblock %}
+{% block content %}
+    <div class="all-wrapper solid-bg-all">
+      <div class="layout-w">
+        <div class="content-w">
+          <div class="content-i">
+            <div class="content-box" style="margin: 0 auto; width: 60%">
+              <div class="element-wrapper">
+                <div class="element-box" style="margin-bottom: 10px;">
+                  <h2 class="form-header">
+                      欢迎存款
+                  </h2>
+                  <div class="table-responsive">
+                    <form action="{% url 'Qsystem:deposit' %}" method="post">
+                      {% if message %}
+                          <div class="alert alert-warning">{{ message }}</div>
+                      {% endif %}
+
+                      {% csrf_token %}
+
+                      <div class="form-group">
+                          {{ deposit_form.amount.label_tag }}
+                          {{ deposit_form.amount }}
+                      </div>
+                      <div class="buttons-w">
+                        <button type="reset" class="btn btn-outline-primary pull-left">重置</button>
+                        <button type="submit" class="btn btn-primary pull-right">存款</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+{% endblock %}
