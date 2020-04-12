@@ -30,9 +30,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'captcha',
-    'polls.apps.PollsConfig',
     'Qsystem.apps.QsystemConfig',
-    'login.apps.LoginConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

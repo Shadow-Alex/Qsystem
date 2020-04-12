@@ -1,12 +1,87 @@
 {% extends 'Qsystem/base.html' %}
 {% block title %}主页{% endblock %}
+{% load static %}
+{% block css %}
+    <link href="{% static 'img/favicon.png' %}" rel="shortcut icon">
+    <link href="{% static 'img/apple-touch-icon.png' %}" rel="apple-touch-icon">
+    <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500" rel="stylesheet" type="text/css">
+    <link href="{% static 'bower_components/select2/dist/css/select2.min.css' %}" rel="stylesheet">
+    <link href="{% static 'bower_components/bootstrap-daterangepicker/daterangepicker.css' %}" rel="stylesheet">
+    <link href="{% static 'bower_components/dropzone/dist/dropzone.css' %}" rel="stylesheet">
+    <link href="{% static 'bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'bower_components/fullcalendar/dist/fullcalendar.min.css' %}" rel="stylesheet">
+{#    <link href="{% static 'bower_components/perfect-scrollbar/css/perfect-scrollbar.min.css' %}" rel="stylesheet">#}
+    <link href="{% static 'bower_components/slick-carousel/slick/slick.css' %}" rel="stylesheet">
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+
+    <script src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>
+    <script src="{% static 'bower_components/popper.js/dist/umd/popper.min.js' %}"></script>
+    <script src="{% static 'bower_components/moment/moment.js' %}"></script>
+    <script src="{% static 'bower_components/chart.js/dist/Chart.min.js' %}"></script>
+    <script src="{% static 'bower_components/select2/dist/js/select2.full.min.js' %}"></script>
+    <script src="{% static 'bower_components/jquery-bar-rating/dist/jquery.barrating.min.js' %}"></script>
+    <script src="{% static 'bower_components/ckeditor/ckeditor.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap-validator/dist/validator.min.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
+    <script src="{% static 'bower_components/ion.rangeSlider/js/ion.rangeSlider.min.js' %}"></script>
+    <script src="{% static 'bower_components/dropzone/dist/dropzone.js' %}"></script>
+    <script src="{% static 'bower_components/editable-table/mindmup-editabletable.js' %}"></script>
+    <script src="{% static 'bower_components/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'bower_components/fullcalendar/dist/fullcalendar.min.js' %}"></script>
+{#    <script src="{% static 'bower_components/perfect-scrollbar/js/perfect-scrollbar.jquery.min.js' %}"></script>#}
+    <script src="{% static 'bower_components/tether/dist/js/tether.min.js' %}"></script>
+    <script src="{% static 'bower_components/slick-carousel/slick/slick.min.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/util.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/alert.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/button.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/carousel.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/collapse.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/dropdown.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/modal.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/tab.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/tooltip.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap/js/dist/popover.js' %}"></script>
+    <script src="{% static 'js/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'js/demo_customizer.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+{% endblock %}
 {% block index_display %}
     <li class="active"><a href="{% url 'Qsystem:index' %}">主页</a></li>
 {% endblock %}
 {% block content %}
-    {% if request.session.is_login %}
-        <h1>你好,{{ request.session.user_name }}！欢迎回来！</h1>
-    {% else %}
-        <h1>你尚未登录，只能访问公开内容！</h1>
-    {% endif %}
+
+    <div class="all-wrapper solid-bg-all">
+      <div class="layout-w">
+        <div class="content-w">
+          <!--------------------
+          START - Top Bar
+          -------------------->
+          <div class="top-bar color-scheme-transparent">
+              <div class="content-i" style="margin: 0 auto">
+                <div class="content-box">
+                  <div class="element-wrapper">
+                    <div class="element-box">
+                      <h1 class="form-header">
+                        {% if request.session.is_login %}
+                            {% if block_message %}
+                                {{ block_message }}
+                            {% else %}
+                                你好,{{ request.session.user_name }}！欢迎回来！
+                            {% endif %}
+                        {% else %}
+                            你尚未登录，只能访问公开内容！
+                        {% endif %}
+                      </h1>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </div>
+          <!--------------------
+          END - Top Bar
+          -------------------->
+        </div>
+      </div>
+    </div>
 {% endblock %}
